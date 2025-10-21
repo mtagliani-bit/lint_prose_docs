@@ -38,14 +38,15 @@ jobs:
           level: error
           patterns: '**/*.md **/*.mdx **/*.txt **/*.rst **/*.adoc **/*.html'
           language: en-US
-          reviewdog_flags: '-fail-level=error'
+          fail_level: error
 
       # 3) Spelling — typos with Suggested changes (click to apply)
       # Produces 1-click "Suggested changes" for misspellings.
       - name: Spelling suggestions (typos + reviewdog)
         uses: reviewdog/action-typos@v1
         with:
-          reporter: github-pr-check    # review comments with fix suggestions
+          reporter: github-pr-check
           level: error
-          filter_mode: added            # only changed lines
+          filter_mode: added            
+          fail_level: error
         
