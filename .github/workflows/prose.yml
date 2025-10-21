@@ -21,6 +21,7 @@ jobs:
       - uses: actions/checkout@v4
 
       # 1) Vale — warnings only; do not fail the job
+      #excludes code
       - name: Vale (warnings; ignores code blocks)
         uses: errata-ai/vale-action@v2
         with:
@@ -29,7 +30,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true  # keep the job green, show warnings
-        # Vale understands Markdown and excludes code, per design. 
 
       # 2) Grammar — LanguageTool via reviewdog (warning comments)
       - name: LanguageTool (grammar via reviewdog)
@@ -39,36 +39,14 @@ jobs:
           level: warning
           patterns: '**/*.md **/*.mdx **/*.txt **/*.rst **/*.adoc **/*.html'
           language: en-US
-        # Posts warning comments; broad grammar coverage without hand-writing rules.
+          reviewdog_flags: '-fail-level=warning'
 
       # 3) Spelling — typos with Suggested changes (click to apply)
+      # Produces 1-click "Suggested changes" for misspellings.
       - name: Spelling suggestions (typos + reviewdog)
         uses: reviewdog/action-typos@v1
         with:
           reporter: github-pr-review    # review comments with fix suggestions
           level: warning
           filter_mode: added            # only changed lines
-        # Produces 1-click "Suggested changes" for misspellings.
-
-      # 4) (Optional) Safe grammar-ish auto-suggestions (diff -> suggestions)
-      #    Collapse duplicate words like "very very" and repeated whitespace.
-      - name: Safe grammar autofix (duplicate words & spacing)
-        run: |
-          set -e
-          # collapse duplicated words (case-insensitive) in prose files
-          git ls-files '**/*.{md,mdx,txt,rst,adoc,html}' | xargs -r -I{} bash -c \
-            "perl -0777 -pe 's/\\b(\\w+)\\s+\\1\\b/\\1/gi' {} | sponge {}"
-          # normalize multiple spaces to one (but don't touch code: strip fenced blocks first)
-          git ls-files '**/*.{md,mdx,txt,rst,adoc,html}' | xargs -r -I{} bash -c '
-            awk "
-              BEGIN{code=0}
-              /^```/{code=!code}
-              { if (code) print \$0; else { gsub(/  +/,\" \"); print } }
-            " {} > {}.tmp && mv {}.tmp {}'
-          # Stage only if changed
-          git diff --quiet || git add -A
-      - name: Suggest auto-fixes (as PR suggestions)
-        if: ${{ !cancelled() && steps.prose.outcome != 'failure' }}
-        uses: reviewdog/action-suggester@v1
-        with:
-          tool_name: prose-autofix
+        
