@@ -38,7 +38,7 @@ jobs:
           level: error
           patterns: '**/*.md **/*.mdx **/*.txt **/*.rst **/*.adoc **/*.html'
           language: en-US
-          reviewdog_flags: '-fail-level=warning'
+          reviewdog_flags: '-fail-level=error'
 
       # 3) Spelling — typos with Suggested changes (click to apply)
       # Produces 1-click "Suggested changes" for misspellings.
