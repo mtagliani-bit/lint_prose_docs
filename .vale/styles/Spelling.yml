@@ -1,0 +1,5 @@
+extends: spelling
+message: "'%s' might be a typo."
+level: warning
+ignore:
+  - spelling/ignore.txt
